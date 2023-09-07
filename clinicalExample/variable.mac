@@ -1,0 +1,42 @@
+
+/gate/world/daughters/name scanner
+/gate/world/daughters/insert box
+/gate/scanner/geometry/setXLength 30. cm
+/gate/scanner/geometry/setYLength 20. cm
+/gate/scanner/geometry/setZLength 20. cm
+/gate/scanner/placement/setTranslation {xpos} {ypos} {zpos} cm
+/gate/scanner/placement/setRotationAngle {angle} deg
+/gate/scanner/placement/setRotationAxis 0 0 1
+/gate/scanner/vis/forceWireframe
+
+/gate/scanner/daughters/name detector
+/gate/scanner/daughters/insert box
+/gate/detector/geometry/setXLength 30. cm
+/gate/detector/geometry/setYLength 20. cm
+/gate/detector/geometry/setZLength 20. cm
+/gate/detector/placement/setTranslation 0 0 0 cm
+/gate/detector/setMaterial EJ276
+/gate/detector/vis/setColor blue
+
+/gate/world/daughters/name PatientBox
+/gate/world/daughters/insert box
+/gate/PatientBox/geometry/setXLength 51. cm # check dimensions ... 
+/gate/PatientBox/geometry/setYLength 51. cm # check dimensions ...
+/gate/PatientBox/geometry/setZLength 31. cm # check dimensions ...
+/gate/PatientBox/placement/setTranslation 0 0 0 cm
+/gate/PatientBox/placement/setRotationAxis 0 0 1
+/gate/PatientBox/placement/setRotationAngle 180 deg # check this
+/gate/PatientBox/setMaterial Air
+/gate/PatientBox/vis/setVisible 1
+/gate/PatientBox/vis/setColor green
+
+# Phantom dimensions: 
+/gate/PatientBox/daughters/name patient
+/gate/PatientBox/daughters/insert ImageRegionalizedVolume
+/gate/patient/geometry/setImage {inputfolder}/{dicomfile}
+/gate/patient/geometry/setHUToMaterialFile AttenuationRange.dat
+/gate/patient/placement/setTranslation 0 0 0 mm
+/gate/patient/geometry/distanceMap {dmap}
+
+
+/gate/detector/attachCrystalSD

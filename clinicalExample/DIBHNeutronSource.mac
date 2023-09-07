@@ -1,0 +1,69 @@
+/gate/geometry/setMaterialDatabase GateMaterials.db
+
+/gate/world/geometry/setXLength 120. cm
+/gate/world/geometry/setYLength 120. cm
+/gate/world/geometry/setZLength 120. cm
+
+/control/execute {detectorsetup}.mac
+
+#=================#
+# Physics			#
+#=================#
+
+/gate/geometry/setIonisationPotential Water 78 eV
+/gate/physics/addPhysicsList QGSP_BIC_EMY
+
+/gate/physics/Proton/SetCutInRegion world 1 m
+/gate/physics/Gamma/SetCutInRegion world 1 m
+/gate/physics/Electron/SetCutInRegion world 1 m
+/gate/physics/Positron/SetCutInRegion world 1 m
+
+/gate/physics/SetMaxStepSizeInRegion patient 0.5 mm
+/gate/physics/ActivateStepLimiter proton
+
+/gate/actor/addActor PhaseSpaceActor psa
+/gate/actor/psa/save Output/{inputfolder}/{angle}/neutrons_secondPSA_idx{idx}.root
+/gate/actor/psa/attachTo PatientBox
+/gate/actor/psa/enableProductionProcess true
+/gate/actor/psa/enableEkine true
+/gate/actor/psa/enableXPosition true
+/gate/actor/psa/enableYPosition true
+/gate/actor/psa/enableZPosition true
+/gate/actor/psa/enableXDirection true
+/gate/actor/psa/enableYDirection true
+/gate/actor/psa/enableZDirection true
+/gate/actor/psa/enableParticleName true
+/gate/actor/psa/useVolumeFrame false
+/gate/actor/psa/storeOutgoingParticles false
+/gate/actor/psa/enableProductionVolume true
+/gate/actor/psa/storeSecondaries true
+/gate/actor/psa/addFilter particleFilter
+/gate/actor/psa/particleFilter/addParticle neutron
+
+/gate/run/initialize
+
+#=======================#
+# ADD NEUTRON BEAM	   #
+#=======================#
+
+/gate/source/addSource beam_g phaseSpace
+/gate/source/beam_g/addPhaseSpaceFile Output/{inputfolder}/neutronsPMMA_idx{idx}.root
+/gate/source/beam_g/setParticleType neutron
+/gate/source/beam_g/attachTo patient # STORED IN WORLD FRAME
+
+# front detector: 30 x 20 x 20 , long side lateral, above patient
+# side detector: 30 x 20 x 20 , long side in AP direction
+# back detector: 30 x 20 x 20 , long side lateral
+
+/gate/output/root/enable
+/gate/output/root/setRootSinglesFlag 0
+/gate/output/root/setFileName Output/{inputfolder}/{angle}/neutrons_tracking_idx{idx}
+
+#===============#
+# START BEAMS	#
+##===============#
+
+/gate/random/setEngineName MersenneTwister
+/gate/random/setEngineSeed auto
+/gate/application/setTotalNumberOfPrimaries {npart} # 1e7
+/gate/application/start

@@ -1,0 +1,166 @@
+/gate/geometry/setMaterialDatabase GateMaterials.db
+
+/gate/world/geometry/setXLength 120. cm
+/gate/world/geometry/setYLength 120. cm
+/gate/world/geometry/setZLength 120. cm
+
+/gate/world/daughters/name scanner
+/gate/world/daughters/insert box
+/gate/scanner/geometry/setXLength 30. cm
+/gate/scanner/geometry/setYLength 20. cm
+/gate/scanner/geometry/setZLength 20. cm
+/gate/scanner/placement/setTranslation 0 40 0. cm # put to 40
+/gate/scanner/vis/forceWireframe
+
+#/gate/world/daughters/name phantom
+#/gate/world/daughters/insert cylinder
+#/gate/phantom/geometry/setRmin 0. cm
+#/gate/phantom/geometry/setRmax 10. cm
+#/gate/phantom/geometry/setHeight 30. cm
+#/gate/phantom/placement/setTranslation 0 0 0 cm
+#/gate/phantom/placement/alignToZ # align to Z ?? 
+#/gate/phantom/setMaterial PMMA
+#/gate/phantom/vis/forceWireframe
+
+/gate/world/daughters/name PatientBox
+/gate/world/daughters/insert box
+/gate/PatientBox/geometry/setXLength 40. cm # check dimensions ... 
+/gate/PatientBox/geometry/setYLength 40. cm # check dimensions ...
+/gate/PatientBox/geometry/setZLength 40. cm # check dimensions ...
+/gate/PatientBox/placement/setTranslation 0 0 0 cm
+/gate/PatientBox/placement/setRotationAxis 0 0 1
+/gate/PatientBox/placement/setRotationAngle 180 deg # check this
+/gate/PatientBox/setMaterial Air
+/gate/PatientBox/vis/setVisible 1
+/gate/PatientBox/vis/setColor green
+
+# Phantom dimensions: 
+/gate/PatientBox/daughters/name patient
+#/gate/PatientBox/daughters/insert ImageNestedParametrisedVolume
+#/gate/PatientBox/daughters/insert ImageRegularParametrisedVolume
+/gate/PatientBox/daughters/insert ImageRegionalizedVolume
+/gate/patient/geometry/setImage CTLung_modified/mod_{mod}/{dicomfile} 
+/gate/patient/geometry/setHUToMaterialFile AttenuationRange.dat
+/gate/patient/placement/setTranslation 0 0 0 mm
+#/gate/patient/geometry/buildAndDumpDistanceTransfo {dmap}
+/gate/patient/geometry/distanceMap {dmap}
+
+/gate/scanner/daughters/name detector
+/gate/scanner/daughters/insert box
+/gate/detector/geometry/setXLength 30. cm
+/gate/detector/geometry/setYLength 20. cm
+/gate/detector/geometry/setZLength 20. cm
+/gate/detector/placement/setTranslation 0 0 0 cm
+/gate/detector/setMaterial EJ276
+/gate/detector/vis/setColor blue
+
+#/gate/detector/attachCrystalSD
+
+#=================#
+# Physics			#
+#=================#
+
+/gate/geometry/setIonisationPotential Water 78 eV
+#/gate/physics/addPhysicsList QGSP_BIC_HP
+/gate/physics/addPhysicsList QGSP_BIC_EMY
+
+/gate/physics/Proton/SetCutInRegion world 1 m
+/gate/physics/Gamma/SetCutInRegion world 1 m
+/gate/physics/Electron/SetCutInRegion world 1 m
+/gate/physics/Positron/SetCutInRegion world 1 m
+
+#/gate/physics/SetMaxStepSizeInRegion patient 1 mm
+#/gate/physics/ActivateStepLimiter proton
+
+/gate/actor/addActor PhaseSpaceActor psa
+/gate/actor/psa/save OutputCTLung_modified/mod_{mod}{energyname}/neutronsPMMA_idx{idx}.root
+/gate/actor/psa/attachTo PatientBox
+/gate/actor/psa/enableProductionProcess true
+/gate/actor/psa/enableEkine true
+/gate/actor/psa/enableXPosition true
+/gate/actor/psa/enableYPosition true
+/gate/actor/psa/enableZPosition true
+/gate/actor/psa/enableXDirection true
+/gate/actor/psa/enableYDirection true
+/gate/actor/psa/enableZDirection true
+/gate/actor/psa/enableParticleName true
+/gate/actor/psa/useVolumeFrame false
+/gate/actor/psa/storeOutgoingParticles false
+/gate/actor/psa/enableProductionVolume true
+/gate/actor/psa/storeSecondaries true
+/gate/actor/psa/addFilter particleFilter
+/gate/actor/psa/particleFilter/addParticle neutron
+
+/gate/actor/addActor PhaseSpaceActor psaG
+/gate/actor/psaG/save OutputCTLung_modified/mod_{mod}{energyname}/gammasPMMA_idx{idx}.root
+/gate/actor/psaG/attachTo PatientBox
+/gate/actor/psaG/enableProductionProcess true
+/gate/actor/psaG/enableEkine true
+/gate/actor/psaG/enableXPosition true
+/gate/actor/psaG/enableYPosition true
+/gate/actor/psaG/enableZPosition true
+/gate/actor/psaG/enableXDirection true
+/gate/actor/psaG/enableYDirection true
+/gate/actor/psaG/enableZDirection true
+/gate/actor/psaG/enableParticleName true
+/gate/actor/psaG/useVolumeFrame false
+/gate/actor/psaG/storeOutgoingParticles false
+/gate/actor/psaG/enableProductionVolume true
+/gate/actor/psaG/storeSecondaries true
+/gate/actor/psaG/addFilter particleFilter
+/gate/actor/psaG/particleFilter/addParticle gamma
+
+#/gate/actor/addActor DoseActor dose
+#/gate/actor/dose/save OutputCTLung_modified/mod_{mod}/dose_{npart}.root
+#/gate/actor/dose/attachTo PatientBox
+#/gate/actor/dose/stepHitType random
+#/gate/actor/dose/setSize 40 40 1 cm
+#/gate/actor/dose/setResolution 400 400 1
+#/gate/actor/dose/enableEdep false
+#/gate/actor/dose/enableUncertaintyEdep false
+#/gate/actor/dose/enableDose true
+#/gate/actor/dose/enableDoseToWater false
+
+#/gate/actor/addActor ProductionAndStoppingActor range
+#/gate/actor/range/save OutputCTLung_modified/mod_{mod}{energyname}/range_mod{mod}{energyname}{npart}.root
+#/gate/actor/range/attachTo PatientBox
+#/gate/actor/range/setResolution 1 2000 1
+#/gate/actor/range/stepHitType post
+#/gate/actor/range/addFilter particleFilter
+#/gate/actor/range/particleFilter/addParticlePDG 2212
+
+/gate/run/initialize
+
+#=======================#
+# ADD NEUTRON BEAM	   #
+#=======================#
+
+/gate/source/addSource PBS PencilBeam
+/gate/source/PBS/setParticleType proton
+/gate/source/PBS/setEnergy {energy} MeV # was 85 # was 84.595
+/gate/source/PBS/setSigmaEnergy 0. MeV
+/gate/source/PBS/setPosition -7 -50 -0.0 cm
+/gate/source/PBS/setSigmaX 2 mm # 2 as small as possible
+/gate/source/PBS/setSigmaY 2 mm # 2
+/gate/source/PBS/setSigmaTheta 2.5 mrad # 2.5
+/gate/source/PBS/setSigmaPhi 2.5 mrad # 2.5
+/gate/source/PBS/setEllipseXThetaEmittance 10 mm*mrad
+/gate/source/PBS/setEllipseXThetaRotationNorm negative
+/gate/source/PBS/setEllipseYPhiEmittance 10 mm*mrad
+/gate/source/PBS/setEllipseYPhiRotationNorm negative
+/gate/source/PBS/setRotationAxis 1 0 0
+/gate/source/PBS/setRotationAngle 270 deg
+
+/gate/output/root/disable
+#/gate/output/root/setRootSinglesFlag 0
+#/gate/output/root/setFileName OutputCTLung/tracking_120MeV_idx{idx}
+
+#===============#
+# START BEAMS	#
+##===============#
+
+/gate/random/setEngineName MersenneTwister
+#/gate/random/setEngineName MersenneTwister
+/gate/random/setEngineSeed auto
+/gate/application/setTotalNumberOfPrimaries {npart} # 1e7
+/gate/application/start
