@@ -9,7 +9,7 @@
 /gate/scanner/geometry/setXLength 30. cm
 /gate/scanner/geometry/setYLength 20. cm
 /gate/scanner/geometry/setZLength 20. cm
-/gate/scanner/placement/setTranslation 0 40 0. cm # put to 40
+/gate/scanner/placement/setTranslation 0 40 0. cm # put to 40 # 50
 /gate/scanner/vis/forceWireframe
 
 #/gate/world/daughters/name phantom
